@@ -14,10 +14,11 @@ CFLAGS= -O2 -std=c++17 $(WARN) $(INC)  -fvisibility=hidden
 MYNAME= nwcrocks
 MYLIB= 
 T= $(MYNAME).so
-OBJS= db.o 
+OBJS= db.o \
+	  utils.o
 
 
-%.o: %.cc
+%.o: %.cc 
 	$(CC) $(CFLAGS) -fPIC -c -o $@ $<
 
 $T:	$(OBJS)
