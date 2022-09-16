@@ -44,7 +44,22 @@ struct rocks_cf {
     DB* db=nullptr;
     bool open=false;
     Options options;
+    std::vector<std::string> cf_names;
     std::vector<ColumnFamilyHandle*> handles;
+    ColumnFamilyHandle* get_handle(const std::string& str){
+        ColumnFamilyHandle  *handle = nullptr;
+        auto iter_handle = handles.begin();
+        for( auto iter_name = cf_names.begin();
+                iter_name != cf_names.end() && *iter_name != str;
+                ++iter_name) 
+                    ++iter_handle;
+         if (iter_handle != handles.end())
+             handle = *iter_handle;
+         return handle;
+        
+    }
+
+
     ~rocks_cf () {
         for (auto handle : handles) {
             Status s = db->DestroyColumnFamilyHandle(handle);
@@ -69,8 +84,9 @@ struct rocks_cf {
      const char *path = luaL_checkstring(L, ++argc);
 
      Status s = DB::Open(options, path, &db);
-     assert(s.ok());
+     //assert(s.ok());
      if(!s.ok()) {
+        fprintf(stderr,"status = %s\n", s.getState());
          luaL_error(L, "failed to open");
          return 0;
      }
@@ -103,11 +119,13 @@ int open_cf(lua_State* L){
     // open DB with two column families
     std::vector<ColumnFamilyDescriptor> column_families;
     // have to open default column family
+    std::vector<std::string> cf_names;
     while (lua_next(L, -2))
     {
         lua_pushvalue(L, -2);
         int index = luaL_checkint(L, -1);
         const char *value = lua_tostring(L, -2);
+        cf_names.push_back(value);
         column_families.push_back(
                 ColumnFamilyDescriptor( value, ROCKSDB_NAMESPACE::ColumnFamilyOptions())
                 );
@@ -128,6 +146,8 @@ int open_cf(lua_State* L){
     d->db = db;
     d->open = true;
     d->handles.swap(handles);
+    d->cf_names.swap(cf_names);
+    assert(cf_names.size() == handles.size());
     lrocks::setmeta(L, "db");
 
     return 1;

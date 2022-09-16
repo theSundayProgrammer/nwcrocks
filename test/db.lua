@@ -10,7 +10,7 @@ local options = {
 }
 
 
-local db = rocksdb.open(options, "/tmp/rocksdb.test")
+local db = rocksdb.open(options, "/tmp/rocks_db.test")
 
 
 db:close()
