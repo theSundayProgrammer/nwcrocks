@@ -15,7 +15,8 @@ MYNAME= nwcrocks
 MYLIB= 
 T= $(MYNAME).so
 OBJS= db.o \
-	  utils.o
+	  utils.o \
+	  options.o
 
 
 %.o: %.cc 
