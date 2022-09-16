@@ -20,8 +20,13 @@ namespace {
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
     int close(lua_State *L);
+    int close_cf(lua_State *L) ;
     const struct luaL_Reg  db_reg[] = {
         { "close", close },
+        { NULL, NULL }
+    };
+    const struct luaL_Reg  cf_reg[] = {
+        { "close", close_cf },
         { NULL, NULL }
     };
     const struct luaL_Reg  funcs[] = {
@@ -148,11 +153,19 @@ int open_cf(lua_State* L){
     d->handles.swap(handles);
     d->cf_names.swap(cf_names);
     assert(cf_names.size() == handles.size());
-    lrocks::setmeta(L, "db");
+    lrocks::setmeta(L, "cf");
 
     return 1;
 }
 
+    int close_cf(lua_State *L) {
+        int index = 1;
+        rocks_cf *d = (rocks_cf*) luaL_checkudata(L, index, "cf");
+        luaL_argcheck(L, d != NULL && d->db != NULL, index, "cf expected");
+        d->~rocks_cf(); ;
+        
+        return 1;
+    }
     int close(lua_State *L) {
         int index = 1;
         rocks_db *d = (rocks_db*) luaL_checkudata(L, index, "db");
@@ -173,6 +186,7 @@ DLL_PUBLIC int luaopen_nwcrocks(lua_State *L) {
 
     /* register classes */
 
+    lrocks::createmeta(L, "cf", cf_reg);
     lrocks::createmeta(L, "db", db_reg);
     lrocks::setfuncs(L, funcs, 0);
 
