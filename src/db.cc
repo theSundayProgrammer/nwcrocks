@@ -16,63 +16,39 @@ using ROCKSDB_NAMESPACE::WriteOptions;
 using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
 
  ROCKSDB_NAMESPACE::Options options_from_table(lua_State *L, int index) ;
-namespace {
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
-    int close(lua_State *L);
-    int close_cf(lua_State *L) ;
-    const struct luaL_Reg  db_reg[] = {
-        { "close", close },
-        { NULL, NULL }
-    };
-    const struct luaL_Reg  cf_reg[] = {
-        { "close", close_cf },
-        { NULL, NULL }
-    };
-    const struct luaL_Reg  funcs[] = {
-        { "open", open_db },
-        { "open_cf", open_cf },
-        { NULL, NULL }
-    };
+    namespace {
+        int close(lua_State *L);
+        const struct luaL_Reg  db_reg[] = {
+            { "close", close },
+            { NULL, NULL }
+        };
 
+        const struct luaL_Reg  funcs[] = {
+            { "open", open_db },
+            { "open_cf", open_cf },
+            { NULL, NULL }
+        };
 
-struct rocks_db {
-    DB* db=nullptr;
-    bool open=false;
-    Options options;
-    ~rocks_db () {
-       delete db;
-    }
-};
+        struct rocks_db {
+            DB* db=nullptr;
+            bool open=false;
+            Options options;
+            ~rocks_db () {
+                delete db;
+            }
+        };
 
-struct rocks_cf { 
-    DB* db=nullptr;
-    bool open=false;
-    Options options;
-    std::vector<std::string> cf_names;
-    std::vector<ColumnFamilyHandle*> handles;
-    ColumnFamilyHandle* get_handle(const std::string& str){
-        ColumnFamilyHandle  *handle = nullptr;
-        auto iter_handle = handles.begin();
-        for( auto iter_name = cf_names.begin();
-                iter_name != cf_names.end() && *iter_name != str;
-                ++iter_name) 
-                    ++iter_handle;
-         if (iter_handle != handles.end())
-             handle = *iter_handle;
-         return handle;
-        
-    }
+        int close(lua_State *L) {
+            int index = 1;
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, index, "db");
+            luaL_argcheck(L, d != NULL && d->db != NULL, index, "db expected");
+            d->~rocks_db(); ;
 
-
-    ~rocks_cf () {
-        for (auto handle : handles) {
-            Status s = db->DestroyColumnFamilyHandle(handle);
-            assert(s.ok());
+            return 1;
         }
-        delete db;
     }
-};
  int open_db(lua_State *L) {
      DB* db;
      int argc = 0;
@@ -103,81 +79,10 @@ struct rocks_cf {
 
      return 1;
  }
-int open_cf(lua_State* L){
-    DB* db;
-    int argc = 0;
-    using ROCKSDB_NAMESPACE::ColumnFamilyDescriptor;
-    Options options = options_from_table(L, ++argc);
-    // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
-    options.IncreaseParallelism();
-    options.OptimizeLevelStyleCompaction();
-    // create the DB if it's not already present
-
-    //fprintf(stderr," create = %s\n", options.create_if_missing ? "true": "false");
-    //fprintf(stderr," create = %s\n", options.create_missing_column_families? "true": "false");
-    // open DB
-
-    const char *path = luaL_checkstring(L, ++argc);
-
-    lua_pushvalue(L, ++argc);
-    lua_pushnil(L);
-    // open DB with two column families
-    std::vector<ColumnFamilyDescriptor> column_families;
-    // have to open default column family
-    std::vector<std::string> cf_names;
-    while (lua_next(L, -2))
-    {
-        lua_pushvalue(L, -2);
-        int index = luaL_checkint(L, -1);
-        const char *value = lua_tostring(L, -2);
-        cf_names.push_back(value);
-        column_families.push_back(
-                ColumnFamilyDescriptor( value, ROCKSDB_NAMESPACE::ColumnFamilyOptions())
-                );
-        //fprintf(stderr,"%d=%s\n", index,value);
-        lua_pop(L, 2);
-    }
-    lua_pop(L, 1);
-    /* int options */
-    std::vector<ColumnFamilyHandle*> handles;
-    Status s = DB::Open(options, path, column_families, &handles, &db);
-    if(!s.ok()) {
-        fprintf(stderr,"status = %s\n", s.getState());
-        luaL_error(L, "failed to open");
-        return 0;
-    }
-    rocks_cf *d = new (lua_newuserdata(L, sizeof(rocks_cf))) rocks_cf();
-    d->options=options;
-    d->db = db;
-    d->open = true;
-    d->handles.swap(handles);
-    d->cf_names.swap(cf_names);
-    assert(cf_names.size() == handles.size());
-    lrocks::setmeta(L, "cf");
-
-    return 1;
-}
-
-    int close_cf(lua_State *L) {
-        int index = 1;
-        rocks_cf *d = (rocks_cf*) luaL_checkudata(L, index, "cf");
-        luaL_argcheck(L, d != NULL && d->db != NULL, index, "cf expected");
-        d->~rocks_cf(); ;
-        
-        return 1;
-    }
-    int close(lua_State *L) {
-        int index = 1;
-        rocks_db *d = (rocks_db*) luaL_checkudata(L, index, "db");
-        luaL_argcheck(L, d != NULL && d->db != NULL, index, "db expected");
-        d->~rocks_db(); ;
-        
-        return 1;
-    }
 
 
 
-}
+
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -186,7 +91,6 @@ DLL_PUBLIC int luaopen_nwcrocks(lua_State *L) {
 
     /* register classes */
 
-    lrocks::createmeta(L, "cf", cf_reg);
     lrocks::createmeta(L, "db", db_reg);
     lrocks::setfuncs(L, funcs, 0);
 

@@ -15,6 +15,7 @@ MYNAME= nwcrocks
 MYLIB= 
 T= $(MYNAME).so
 OBJS= src/db.o \
+	  src/cf.o \
 	  src/utils.o \
 	  src/options.o
 
