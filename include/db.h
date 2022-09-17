@@ -6,7 +6,7 @@ extern "C" {
 #include <string>
 namespace lrocks {
     int createmeta(lua_State *L, const char *name, const luaL_Reg *methods) ;
-    void setfuncs (lua_State *L, const luaL_Reg *l, int nup) ;
+    void setfuncs (lua_State *L, const luaL_Reg *l) ;
     void setmeta(lua_State *L, const char *name) ;
     void assert(lua_State *L, int cond, const char *msg) ;
     std::string get_str(lua_State* L, int index);
