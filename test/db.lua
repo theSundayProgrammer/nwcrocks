@@ -29,5 +29,12 @@ for i = 0, 1000 do
 end
 print("done: get")
 
+print("delete: start", key)
+key = "lrocks_db_key:delete_me"
+db:put(key, "delete")
+db:remove( key)
+value = db:get(key)
+print("delete: end", key, type(value), value, "-")
+assert(value == nil)
 db:close()
 

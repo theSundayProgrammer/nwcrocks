@@ -22,9 +22,11 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
         int get(lua_State* L) ;
         int put(lua_State* L) ;
         int close(lua_State *L);
+        int remove(lua_State *L);
         const struct luaL_Reg  db_reg[] = {
             { "get", get },
             { "put", put },
+            { "remove", remove },
             { "close", close },
             { NULL, NULL }
         };
@@ -52,6 +54,20 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
 
             return 1;
         }
+        int remove(lua_State* L) {
+            using ROCKSDB_NAMESPACE::Slice;
+            using lrocks::get_str;
+            int argc=0;
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            std::string key = get_str(L, ++argc);
+            Status s = d->db->Delete(WriteOptions(), Slice(key));
+            if(!s.ok()) {
+                fprintf(stderr,"status = %s\n", s.getState());
+                luaL_error(L, "failed to delete");
+                return 0;
+            }
+            return 1;
+        }
         int put(lua_State* L) {
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
@@ -77,10 +93,9 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             Status s = d->db->Get(ReadOptions(), Slice(key), &value);
             if(!s.ok()) {
                 fprintf(stderr,"status = %s\n", s.getState());
-                luaL_error(L, "failed to get");
-                return 0;
+                lua_pushnil(L);
             }
-            if(!value.empty() ) {
+            else if(!value.empty() ) {
                 lua_pushlstring(L, value.data(), value.size());
             }
             else {
