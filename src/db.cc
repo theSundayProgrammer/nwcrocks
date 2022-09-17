@@ -19,8 +19,12 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
     namespace {
+        int get(lua_State* L) ;
+        int put(lua_State* L) ;
         int close(lua_State *L);
         const struct luaL_Reg  db_reg[] = {
+            { "get", get },
+            { "put", put },
             { "close", close },
             { NULL, NULL }
         };
@@ -46,6 +50,42 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             luaL_argcheck(L, d != NULL && d->db != NULL, index, "db expected");
             d->~rocks_db(); ;
 
+            return 1;
+        }
+        int put(lua_State* L) {
+            using ROCKSDB_NAMESPACE::Slice;
+            using lrocks::get_str;
+            int argc=0;
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            std::string key = get_str(L, ++argc);
+            std::string value = get_str(L, ++argc);
+            Status s = d->db->Put(WriteOptions(), Slice(key), Slice(value));
+            if(!s.ok()) {
+                fprintf(stderr,"status = %s\n", s.getState());
+                luaL_error(L, "failed to put");
+                return 0;
+            }
+            return 1;
+        }
+        int get(lua_State* L) {
+            using ROCKSDB_NAMESPACE::Slice;
+            using lrocks::get_str;
+            int argc=0;
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            std::string key = get_str(L, ++argc);
+            std::string value ;
+            Status s = d->db->Get(ReadOptions(), Slice(key), &value);
+            if(!s.ok()) {
+                fprintf(stderr,"status = %s\n", s.getState());
+                luaL_error(L, "failed to get");
+                return 0;
+            }
+            if(!value.empty() ) {
+                lua_pushlstring(L, value.data(), value.size());
+            }
+            else {
+                lua_pushnil(L);
+            }
             return 1;
         }
     }

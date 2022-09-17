@@ -58,15 +58,9 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
                 delete db;
             }
         };
-        std::string get_str(lua_State* L, int index){
-
-            size_t len;
-            const char* name = luaL_checklstring(L, index, &len);
-            return std::string(name,len);
-        }
-
         int put(lua_State* L) {
             using ROCKSDB_NAMESPACE::Slice;
+            using lrocks::get_str;
             int argc=0;
             rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, "cf");
             std::string cf_name = get_str(L, ++argc);
@@ -82,6 +76,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
         }
         int get(lua_State* L) {
             using ROCKSDB_NAMESPACE::Slice;
+            using lrocks::get_str;
             int argc=0;
             rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, "cf");
             std::string cf_name = get_str(L, ++argc);

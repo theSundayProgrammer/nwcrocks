@@ -14,6 +14,12 @@ namespace lrocks {
         lua_pop(L, nup);  /* remove upvalues */
     }
 
+        std::string get_str(lua_State* L, int index){
+
+            size_t len;
+            const char* name = luaL_checklstring(L, index, &len);
+            return std::string(name,len);
+        }
     int createmeta(lua_State *L, const char *name, const luaL_Reg *methods) {
         if (!luaL_newmetatable(L, name)) {
             return 0;
