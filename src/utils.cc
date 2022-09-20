@@ -7,7 +7,6 @@ namespace lrocks {
             lua_pushcclosure(L, l->func, 0);  /* closure with those upvalues */
             lua_settable(L, -3);
         }
-        lua_pop(L, 0);  /* remove upvalues */
     }
 
         std::string get_str(lua_State* L, int index){
