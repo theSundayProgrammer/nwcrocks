@@ -14,7 +14,7 @@ using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteBatch;
 using ROCKSDB_NAMESPACE::WriteOptions;
 using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
-
+const char* table="nwc_db";
  ROCKSDB_NAMESPACE::Options options_from_table(lua_State *L, int index) ;
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
@@ -48,7 +48,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
 
         int close(lua_State *L) {
             int index = 1;
-            rocks_db *d = (rocks_db*) luaL_checkudata(L, index, "db");
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, index, table);
             luaL_argcheck(L, d != NULL && d->db != NULL, index, "db expected");
             d->~rocks_db(); ;
 
@@ -58,7 +58,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
             std::string key = get_str(L, ++argc);
             Status s = d->db->Delete(WriteOptions(), Slice(key));
             if(!s.ok()) {
@@ -72,7 +72,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
             std::string key = get_str(L, ++argc);
             std::string value = get_str(L, ++argc);
             Status s = d->db->Put(WriteOptions(), Slice(key), Slice(value));
@@ -87,7 +87,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, "db");
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
             std::string key = get_str(L, ++argc);
             std::string value ;
             Status s = d->db->Get(ReadOptions(), Slice(key), &value);
@@ -106,6 +106,10 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
     }
  int open_db(lua_State *L) {
      DB* db;
+    static bool init = [=]() {
+    lrocks::createmeta(L, table, db_reg);
+    return true;
+    }();
      int argc = 0;
      Options options = options_from_table(L, ++argc);
      // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
@@ -130,7 +134,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
      d->options=options;
      d->db = db;
      d->open = true;
-     lrocks::setmeta(L, "db");
+     lrocks::setmeta(L, table);
 
      return 1;
  }
@@ -146,7 +150,6 @@ DLL_PUBLIC int luaopen_nwcrocks(lua_State *L) {
 
     /* register classes */
 
-    lrocks::createmeta(L, "db", db_reg);
     lrocks::setfuncs(L, funcs );
 
     lua_pushliteral(L, LROCKSDB_VERSION);
