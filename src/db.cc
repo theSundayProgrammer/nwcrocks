@@ -150,8 +150,8 @@ DLL_PUBLIC int luaopen_nwcrocks(lua_State *L) {
 
     /* register classes */
 
-    lrocks::setfuncs(L, funcs );
-
+    //lrocks::setfuncs(L, funcs );
+    luaL_newlib(L,funcs);
     lua_pushliteral(L, LROCKSDB_VERSION);
     lua_setfield(L, -2, "_VERSION");
     lua_pushliteral(L, LROCKSDB_COPYRIGHT);
