@@ -12,7 +12,6 @@ using ROCKSDB_NAMESPACE::WriteBatch;
 using ROCKSDB_NAMESPACE::WriteOptions;
 using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
 
-int writebatch_create(lua_State *L);
 static const char* table="writebatchtable";
 namespace {
 
@@ -37,7 +36,7 @@ namespace {
         { "merge", merge },
         { "write", write },
         { "destroy", destroy },
-        { "__gc", destroy },
+        //{ "__gc", destroy },
         { NULL, NULL }
     };
     int write(lua_State *L) {
@@ -86,17 +85,18 @@ namespace {
     }
 }
 
+namespace lrocks {
 
-
-int writebatch_create(lua_State *L,ROCKSDB_NAMESPACE::DB* db){
-    static bool init = [](lua_State* L) {
-        lrocks::createmeta(L, table, reg);
-        return true;
-    }(L);
-    new (lua_newuserdata(L, sizeof(writebatch_t))) writebatch_t() ;
-
-    luaL_getmetatable(L, table);
-    lua_setmetatable(L, -2);
-    return 1;
+    int writebatch_create(lua_State *L,ROCKSDB_NAMESPACE::DB* db){
+        static bool init = [](lua_State* L) {
+            lrocks::createmeta(L, table, reg);
+            //fprintf(stderr,"write meta table created\n");
+            return true;
+        }(L);
+        auto wb = new (lua_newuserdata(L, sizeof(writebatch_t))) writebatch_t() ;
+        wb->db = db;
+        luaL_getmetatable(L, table);
+        lua_setmetatable(L, -2);
+        return 1;
+    }
 }
-

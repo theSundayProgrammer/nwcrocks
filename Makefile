@@ -16,6 +16,7 @@ MYLIB=
 T= $(MYNAME).so
 OBJS= src/db.o \
 	  src/cf.o \
+	  src/writebatch.o \
 	  src/utils.o \
 	  src/options.o
 
