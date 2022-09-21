@@ -15,14 +15,17 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
  ROCKSDB_NAMESPACE::Options options_from_table(lua_State *L, int index) ;
     int open_cf(lua_State *L);
     namespace {
+        const char* table="column_family";
         int close(lua_State *L) ;
         int get(lua_State* L) ;
         int put(lua_State* L) ;
         int remove(lua_State* L);
+        int batch_begin (lua_State* L);
         const struct luaL_Reg  cf_reg[] = {
             { "remove", remove },
             { "get", get },
             { "put", put },
+            { "batch_begin", batch_begin },
             { "close", close },
             { NULL, NULL }
         };
@@ -57,11 +60,18 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
                 delete db;
             }
         };
+        int batch_begin(lua_State* L) {
+            int argc=0;
+            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, table);
+            std::string cf_name = lrocks::get_str(L, ++argc);
+            lrocks::cf_writebatch_create(L, d->db, d->get_handle(cf_name));
+            return 1;
+        }
         int put(lua_State* L) {
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, "cf");
+            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, table);
             std::string cf_name = get_str(L, ++argc);
             std::string key = get_str(L, ++argc);
             std::string value = get_str(L, ++argc);
@@ -77,7 +87,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, "cf");
+            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, table);
             std::string cf_name = get_str(L, ++argc);
             std::string key = get_str(L, ++argc);
             Status s = d->db->Delete(WriteOptions(), d->get_handle(cf_name), Slice(key));
@@ -92,7 +102,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             using ROCKSDB_NAMESPACE::Slice;
             using lrocks::get_str;
             int argc=0;
-            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, "cf");
+            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, ++argc, table);
             std::string cf_name = get_str(L, ++argc);
             std::string key = get_str(L, ++argc);
             std::string value ;
@@ -111,7 +121,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
         }
         int close(lua_State *L) {
             int index = 1;
-            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, index, "cf");
+            rocks_cf *d = (rocks_cf*) luaL_checkudata(L, index, table);
             luaL_argcheck(L, d != NULL && d->db != NULL, index, "cf expected");
             d->~rocks_cf(); ;
 
@@ -122,7 +132,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
 
 int open_cf(lua_State* L){
     static bool init = [=]() {
-    lrocks::createmeta(L, "cf", cf_reg);
+    lrocks::createmeta(L, table, cf_reg);
     return true;
     }();
     DB* db;
@@ -174,7 +184,7 @@ int open_cf(lua_State* L){
     d->handles.swap(handles);
     d->cf_names.swap(cf_names);
     assert(cf_names.size() == handles.size());
-    lrocks::setmeta(L, "cf");
+    lrocks::setmeta(L, table);
 
     return 1;
 }
