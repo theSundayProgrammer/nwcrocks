@@ -1,6 +1,3 @@
-#define LROCKSDB_VERSION "nwc-rocksdb 0.0.1"
-#define LROCKSDB_COPYRIGHT "Copyright (C) 2022 Joe Mariadassou"
-#define LROCKSDB_DESCRIPTION "RocksDB C++ Lua binding"
 #include "db.h"
 #include <cstdio>
 #include <string>
