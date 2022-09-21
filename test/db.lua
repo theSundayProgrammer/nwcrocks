@@ -11,12 +11,14 @@ local options = {
 
 
 local db = rocksdb.open(options, "/tmp/rocks_db.test")
-
+local db2 = rocksdb.open(options, "/tmp/rocks_db2.test")
+print("class = ", db["class"])
 print("start: put")
 for i = 0, 1000 do
   key = format("lrocks_db_key:%d", i)
   value = format("lrocks_db_value:%d", i)
   db:put( key, value)
+  db2:put( key, value)
 end
 print("done: put")
 
