@@ -18,6 +18,7 @@ OBJS= src/db.o \
 	  src/cf.o \
 	  src/writebatch_cf.o \
 	  src/writebatch.o \
+	  src/iter.o \
 	  src/utils.o \
 	  src/options.o
 
