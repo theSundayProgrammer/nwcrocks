@@ -21,7 +21,7 @@ namespace {
         { "prev", prev },
         { "key", key },
         { "value", value },
-        { "get_error", get_error },
+//        { "get_error", get_error },
         { "destroy", destroy },
         { "__gec", destroy },
         { NULL, NULL }
@@ -117,19 +117,36 @@ namespace {
         }
         return 1;
     }
-}
-namespace lrocks {
-
-    int make_iterator(lua_State *L,ROCKSDB_NAMESPACE::DB* db){
+    bool make_table(lua_State* L)
+    {
         static bool init = [](lua_State* L) {
             lrocks::createmeta(L, table, reg);
             //fprintf(stderr,"write meta table created\n");
             return true;
         }(L);
-        if(!init)
+        return init;
+    }
+
+}
+namespace lrocks {
+
+    int make_iterator(lua_State *L,ROCKSDB_NAMESPACE::DB* db){
+        if(!make_table(L))
             return 0;
         auto iter = new (lua_newuserdata(L, sizeof(iterator_t))) iterator_t() ;
         iter->iter = db->NewIterator(ROCKSDB_NAMESPACE::ReadOptions());
+        luaL_getmetatable(L, table);
+        lua_setmetatable(L, -2);
+        return 1;
+    }
+    int make_cf_iterator(
+            lua_State* L, 
+            ROCKSDB_NAMESPACE::DB* db,
+            ROCKSDB_NAMESPACE::ColumnFamilyHandle* h){
+        if(!make_table(L))
+            return 0;
+        auto iter = new (lua_newuserdata(L, sizeof(iterator_t))) iterator_t() ;
+        iter->iter = db->NewIterator(ROCKSDB_NAMESPACE::ReadOptions(),h);
         luaL_getmetatable(L, table);
         lua_setmetatable(L, -2);
         return 1;

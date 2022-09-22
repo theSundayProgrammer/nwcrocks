@@ -24,12 +24,12 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
         int close(lua_State *L);
         int batch_begin(lua_State *L);
         int remove(lua_State *L);
-        int new_iterator(lua_State* L) ;
+        int iterator(lua_State* L) ;
         const struct luaL_Reg  db_reg[] = {
             { "get", get },
             { "put", put },
             { "remove", remove },
-            { "new_iterator", new_iterator },
+            { "iterator", iterator },
             { "batch_begin", batch_begin },
             { "close", close },
             { NULL, NULL }
@@ -75,7 +75,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             }
             return 1;
         }
-        int new_iterator(lua_State* L) {
+        int iterator(lua_State* L) {
             int argc=0;
             rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
             lrocks::make_iterator(L, d->db);

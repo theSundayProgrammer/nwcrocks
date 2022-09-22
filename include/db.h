@@ -15,6 +15,10 @@ namespace lrocks {
     int cf_writebatch_create(lua_State *L, rocksdb::DB*, rocksdb::ColumnFamilyHandle*);
     int writebatch_create(lua_State *L, rocksdb::DB*);
     int make_iterator(lua_State *L,rocksdb::DB* db);
+    int make_cf_iterator(
+            lua_State* L, 
+            rocksdb::DB* db,
+            rocksdb::ColumnFamilyHandle* h);
 }
 
 #include "rocksdb/db.h"
