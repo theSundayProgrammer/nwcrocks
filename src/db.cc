@@ -167,11 +167,9 @@ int open_db(lua_State *L) {
 extern "C"
 #endif
 DLL_PUBLIC int luaopen_nwcrocks(lua_State *L) {
-    lua_newtable(L);
 
     /* register classes */
 
-    //lrocks::setfuncs(L, funcs );
     luaL_newlib(L,funcs);
     lua_pushliteral(L, LROCKSDB_VERSION);
     lua_setfield(L, -2, "_VERSION");
