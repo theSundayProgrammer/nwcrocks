@@ -1,7 +1,7 @@
 
 #include "db.h"
 namespace lrocks {
-     void setfuncs (lua_State *L, const luaL_Reg *l) {
+    void setfuncs (lua_State *L, const luaL_Reg *l) {
         for (; l->name != NULL; l++) {  /* fill the table with given functions */
             lua_pushstring(L, l->name);
             lua_pushcclosure(L, l->func, 0);  /* closure with those upvalues */
@@ -9,12 +9,12 @@ namespace lrocks {
         }
     }
 
-        std::string get_str(lua_State* L, int index){
+    std::string get_str(lua_State* L, int index){
 
-            size_t len;
-            const char* name = luaL_checklstring(L, index, &len);
-            return std::string(name,len);
-        }
+        size_t len;
+        const char* name = luaL_checklstring(L, index, &len);
+        return std::string(name,len);
+    }
     int createmeta(lua_State *L, const char *name, const luaL_Reg *methods) {
         if (!luaL_newmetatable(L, name)) {
             return 0;
