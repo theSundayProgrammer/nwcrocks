@@ -70,7 +70,6 @@ int _create_new_backup(lua_State *L) {
         return 1;
     }
 
-#endif
     int _restore_db_from_latest_backup(lua_State *L) {
         backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
         const char* db_dir = luaL_checkstring(L, 2);
@@ -87,6 +86,7 @@ int _create_new_backup(lua_State *L) {
         return 1;
     }
 
+#endif
 int _get_backup_info_count(lua_State *L) {
     backup_engine_t *be = _get_backup_engine(L, 1);
     int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
@@ -130,7 +130,6 @@ int _get_backup_info(lua_State *L) {
 int open_backup_engine(
         lua_State *L, 
         ROCKSDB_NAMESPACE::DB* db,
-        ROCKSDB_NAMESPACE::Options& options,
         std::string const& path
         )
 {
