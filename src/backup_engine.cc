@@ -19,7 +19,7 @@ namespace {
     int _get_backup_info_count(lua_State *L);
     int _get_backup_info(lua_State *L);
     int _close(lua_State *L);
-const  char* table="backup_engine_table";
+    const  char* table="backup_engine_table";
 
     static const struct luaL_Reg reg[] = {
         { "create_new_backup", _create_new_backup },
@@ -34,10 +34,10 @@ const  char* table="backup_engine_table";
         { NULL, NULL }
     };
 
-struct backup_engine_t {
-  BackupEngine* backup_engine;
-  DB* db;
-};
+    struct backup_engine_t {
+        BackupEngine* backup_engine;
+        DB* db;
+    };
 
     backup_engine_t *_get_backup_engine(lua_State *L, int index) {
         backup_engine_t *o = (backup_engine_t*)
@@ -47,15 +47,15 @@ struct backup_engine_t {
     }
 
 
-int _create_new_backup(lua_State *L) {
-    backup_engine_t *be = _get_backup_engine(L, 1);
-    Status s =   be->backup_engine->CreateNewBackup(be->db);
-    if(!s.ok()) {
-        luaL_error(L, "unable to create backup engine");
-        return 0;
+    int _create_new_backup(lua_State *L) {
+        backup_engine_t *be = _get_backup_engine(L, 1);
+        Status s =   be->backup_engine->CreateNewBackup(be->db);
+        if(!s.ok()) {
+            luaL_error(L, "unable to create backup engine");
+            return 0;
+        }
+        return 1;
     }
-    return 1;
-}
 #if 0
     int _purge_old_backups(lua_State *L) {
         backup_engine_t *be = lrocksdb_get_backup_engine(L, 1);
@@ -87,36 +87,36 @@ int _create_new_backup(lua_State *L) {
     }
 
 #endif
-int _get_backup_info_count(lua_State *L) {
-    backup_engine_t *be = _get_backup_engine(L, 1);
-    int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
-    std::vector<BackupInfo> backup_info;
-    be->backup_engine->GetBackupInfo(&backup_info);
-    int count = backup_info.size();
-    lua_pushnumber(L, count);
-    return 1;
-}
-int _get_backup_info(lua_State *L) {
-    backup_engine_t *be = _get_backup_engine(L, 1);
-    int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
-    std::vector<BackupInfo> backup_info;
-    be->backup_engine->GetBackupInfo(&backup_info);
-    int count = backup_info.size();
-    if(index < 0 || index >= count) {
-        luaL_error(L, "index out of range");
-        return 0;
+    int _get_backup_info_count(lua_State *L) {
+        backup_engine_t *be = _get_backup_engine(L, 1);
+        int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
+        std::vector<BackupInfo> backup_info;
+        be->backup_engine->GetBackupInfo(&backup_info);
+        int count = backup_info.size();
+        lua_pushnumber(L, count);
+        return 1;
     }
-    lua_newtable(L);
-    lua_pushnumber(L,backup_info[index].timestamp);
-    lua_setfield(L, -2, "timestamp");
-    lua_pushnumber(L, backup_info[index].backup_id);
-    lua_setfield(L, -2, "id");
-    lua_pushnumber(L, backup_info[index].size);
-    lua_setfield(L, -2, "size");
-    lua_pushnumber(L, backup_info[index].number_files);
-    lua_setfield(L, -2, "number_files");
-    return 1;
-}
+    int _get_backup_info(lua_State *L) {
+        backup_engine_t *be = _get_backup_engine(L, 1);
+        int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
+        std::vector<BackupInfo> backup_info;
+        be->backup_engine->GetBackupInfo(&backup_info);
+        int count = backup_info.size();
+        if(index < 0 || index >= count) {
+            luaL_error(L, "index out of range");
+            return 0;
+        }
+        lua_newtable(L);
+        lua_pushnumber(L,backup_info[index].timestamp);
+        lua_setfield(L, -2, "timestamp");
+        lua_pushnumber(L, backup_info[index].backup_id);
+        lua_setfield(L, -2, "id");
+        lua_pushnumber(L, backup_info[index].size);
+        lua_setfield(L, -2, "size");
+        lua_pushnumber(L, backup_info[index].number_files);
+        lua_setfield(L, -2, "number_files");
+        return 1;
+    }
 
     int _close(lua_State *L) {
         backup_engine_t *be = _get_backup_engine(L, 1);
@@ -127,16 +127,16 @@ int _get_backup_info(lua_State *L) {
         return 1;
     }
 }
-int open_backup_engine(
-        lua_State *L, 
-        ROCKSDB_NAMESPACE::DB* db,
-        std::string const& path
-        )
-{
+static bool init_backup(lua_State* L) {
     static bool init = [=]() {
         lrocks::createmeta(L, table, reg);
         return true;
     }();
+    return init;
+}
+int create_backup_engine( lua_State *L) {
+    if (!init_bakup(L))
+        return 0;
     BackupEngine* backup_engine;
     Status s = BackupEngine::Open(Env::Default(),
             BackupEngineOptions(path),
@@ -155,6 +155,33 @@ int open_backup_engine(
     lua_setmetatable(L, -2);
     return 1;
 }
+    int backup_engine(
+        lua_State *L, 
+        ROCKSDB_NAMESPACE::DB* db,
+        std::string const& path
+        ) {
+        if (!init_bakup(L))
+            return 0;
+        BackupEngine* backup_engine;
+        Status s = BackupEngine::Open(Env::Default(),
+                BackupEngineOptions(path),
+                &backup_engine);
+        assert(s.ok());
+        if(!s.ok()) {
+            luaL_error(L, "unable to create backup engine");
+            return 0;
+        }
+        backup_engine->CreateNewBackup(db);
+        s= assert(s.ok());
+        backup_engine_t *b = new (lua_newuserdata(L, sizeof(backup_engine_t))) backup_engine_t ;
+        b->backup_engine = backup_engine ;
+        b->db = db;
+        //push meta table onto stack
+        luaL_getmetatable(L, table);
+        //assign meta table to user data and return
+        lua_setmetatable(L, -2);
+        return 1;
+    }
 #if 0
 int main() {
   assert(s.ok());
