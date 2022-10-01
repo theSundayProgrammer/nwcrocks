@@ -15,6 +15,8 @@ namespace lrocks {
     int cf_writebatch_create(lua_State *L, rocksdb::DB*, rocksdb::ColumnFamilyHandle*);
     int writebatch_create(lua_State *L, rocksdb::DB*);
     int make_iterator(lua_State *L,rocksdb::DB* db);
+    int backup_engine(lua_State *L, rocksdb::DB *db, std::string const&);
+    int create_backup_engine( lua_State *L) ;
     int make_cf_iterator(
             lua_State* L, 
             rocksdb::DB* db,

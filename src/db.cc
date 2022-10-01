@@ -17,8 +17,10 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
  ROCKSDB_NAMESPACE::Options options_from_table(lua_State *L, int index) ;
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
+    
     namespace {
         const char* table="nwc_db";
+        int backup(lua_State* L);
         int get(lua_State* L) ;
         int put(lua_State* L) ;
         int close(lua_State *L);
@@ -38,6 +40,7 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
         const struct luaL_Reg  funcs[] = {
             { "open", open_db },
             { "open_cf", open_cf },
+            { "create_backup_engine", lrocks::create_backup_engine},
             { NULL, NULL }
         };
 
@@ -80,6 +83,14 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
             rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
             lrocks::make_iterator(L, d->db);
             return 1;
+        }
+        int backup(lua_State* L) {
+            using lrocks::get_str;
+            int argc=0;
+            rocks_db *d = (rocks_db*) luaL_checkudata(L, ++argc, table);
+            std::string path = get_str(L, ++argc);
+
+            return lrocks::backup_engine(L,d->db, path);
         }
         int batch_begin(lua_State* L) {
             int argc=0;
