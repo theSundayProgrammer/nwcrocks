@@ -47,7 +47,7 @@ namespace {
         uint32_t num_backups_to_keep = luaL_checknumber(L, 2);
         Status  status = be->backup_engine->PurgeOldBackups( num_backups_to_keep);
         if(!status.ok()) {
-            luaL_error(L, "Unable to purge");
+            luaL_error(L, status.ToString().c_str());
             return 0;
         }
         return 1;
@@ -55,11 +55,13 @@ namespace {
 
     int _restore_db_from_latest_backup(lua_State *L) {
         backup_engine_t *be = _get_backup_engine(L, 1);
-        std::string  db_dir = lrocks::get_str(L, 2);
-        std::string  wal_dir = lrocks::get_str(L, 3);
-        Status s = be->backup_engine->RestoreDBFromBackup(1,db_dir,wal_dir);
+
+        uint32_t backup_id = luaL_checknumber(L, 2);
+        std::string  db_dir = lrocks::get_str(L, 3);
+        std::string  wal_dir = lrocks::get_str(L, 4);
+        Status s = be->backup_engine->RestoreDBFromBackup(backup_id,db_dir,wal_dir);
         if(!s.ok()) {
-            luaL_error(L, "Unable to purge");
+            luaL_error(L, s.ToString().c_str());
             return 0;
         }
         return 1;
@@ -75,23 +77,23 @@ namespace {
     }
     int _get_backup_info(lua_State *L) {
         backup_engine_t *be = _get_backup_engine(L, 1);
-        int index = luaL_checkint(L, 2) - 1; //keeping with Lua indices start at 1
         std::vector<BackupInfo> backup_info;
         be->backup_engine->GetBackupInfo(&backup_info);
-        int count = backup_info.size();
-        if(index < 0 || index >= count) {
-            luaL_error(L, "index out of range");
-            return 0;
-        }
         lua_newtable(L);
-        lua_pushnumber(L,backup_info[index].timestamp);
-        lua_setfield(L, -2, "timestamp");
-        lua_pushnumber(L, backup_info[index].backup_id);
-        lua_setfield(L, -2, "id");
-        lua_pushnumber(L, backup_info[index].size);
-        lua_setfield(L, -2, "size");
-        lua_pushnumber(L, backup_info[index].number_files);
-        lua_setfield(L, -2, "number_files");
+        int k =0;
+        for (auto& info: backup_info)
+        {
+            lua_newtable(L);
+            lua_pushnumber(L,info.timestamp);
+            lua_setfield(L, -2, "timestamp");
+            lua_pushnumber(L, info.backup_id);
+            lua_setfield(L, -2, "id");
+            lua_pushnumber(L, info.size);
+            lua_setfield(L, -2, "size");
+            lua_pushnumber(L, info.number_files);
+            lua_setfield(L, -2, "number_files");
+            lua_rawseti(L,-2,++k);
+        }
         return 1;
     }
 
