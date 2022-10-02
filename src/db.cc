@@ -18,18 +18,20 @@ using ROCKSDB_NAMESPACE::ColumnFamilyHandle;
     int open_db(lua_State *L);
     int open_cf(lua_State *L);
     
+    int backup_engine( lua_State *L, DB* db, std::string const& path) ;
     namespace {
         const char* table="nwc_db";
-        int backup(lua_State* L);
         int get(lua_State* L) ;
         int put(lua_State* L) ;
         int close(lua_State *L);
         int batch_begin(lua_State *L);
         int remove(lua_State *L);
+        int backup(lua_State* L) ;
         int iterator(lua_State* L) ;
         const struct luaL_Reg  db_reg[] = {
             { "get", get },
             { "put", put },
+            { "backup", backup },
             { "remove", remove },
             { "iterator", iterator },
             { "batch_begin", batch_begin },
