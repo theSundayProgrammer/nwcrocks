@@ -18,7 +18,7 @@
     }
     else if(strcmp(key, "info_log_level") == 0) {
       opt_int = luaL_checkint(L, -2);
-      options.info_log_level = [](int k) -> ROCKSDB_NAMESPACE::InfoLogLevel{
+      auto int2enum= [](int k) {
           switch(k){
               default:
               case 0: return ROCKSDB_NAMESPACE::DEBUG_LEVEL ;
@@ -27,8 +27,8 @@
               case 3: return ROCKSDB_NAMESPACE::ERROR_LEVEL;
               case 4: return ROCKSDB_NAMESPACE::FATAL_LEVEL;
               case 5: return ROCKSDB_NAMESPACE::HEADER_LEVEL;
-          }}(opt_int);
-    }
+          }};
+    options.info_log_level= int2enum(opt_int); }
     else if(strcmp(key, "max_open_files") == 0) {
       opt_int = luaL_checkint(L, -2);
       options.max_open_files = opt_int;
@@ -83,7 +83,15 @@
     }
     else if(strcmp(key, "access_hint_on_compaction_start") == 0) {
       opt_int = luaL_checkint(L, -2);
-      //options.access_hint_on_compaction_start= opt_int;
+      auto int2enum= [](int k) {
+          switch(k){
+              case 0: return ROCKSDB_NAMESPACE::Options::NONE ;
+              default:
+              case 1: return ROCKSDB_NAMESPACE::Options::NORMAL;
+              case 2: return ROCKSDB_NAMESPACE::Options::SEQUENTIAL;
+              case 3: return ROCKSDB_NAMESPACE::Options::WILLNEED ;
+          }};
+      options.access_hint_on_compaction_start= int2enum(opt_int);
     }
     else if(strcmp(key, "disable_auto_compactions") == 0) {
       opt_int = luaL_checkint(L, -2);
@@ -94,8 +102,23 @@
       options.report_bg_io_stats= opt_int;
     }
     else if(strcmp(key, "compression") == 0) {
-      opt_int = luaL_checkint(L, -2);
-     // options.compression= opt_int;
+        opt_int = luaL_checkint(L, -2);
+        auto int2enum= [](int k) {
+            switch(k){
+                default:
+                case 0 : return  ROCKSDB_NAMESPACE::kNoCompression;
+                case 1 : return  ROCKSDB_NAMESPACE::kSnappyCompression;
+                case 2 : return  ROCKSDB_NAMESPACE::kZlibCompression;
+                case 3 : return  ROCKSDB_NAMESPACE::kBZip2Compression;
+                case 4 : return  ROCKSDB_NAMESPACE::kLZ4Compression;
+                case 5 : return  ROCKSDB_NAMESPACE::kLZ4HCCompression;
+                case 6 : return  ROCKSDB_NAMESPACE::kXpressCompression;
+                case 7 : return  ROCKSDB_NAMESPACE::kZSTD;
+                case 8 : return  ROCKSDB_NAMESPACE::kZSTDNotFinalCompression;
+                case 9 : return  ROCKSDB_NAMESPACE::kDisableCompressionOption;
+            }
+        };
+        options.compression= int2enum(opt_int);
     }
     else if(strcmp(key, "compaction_style") == 0) {
       opt_int = luaL_checkint(L, -2);
