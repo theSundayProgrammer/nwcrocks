@@ -18,7 +18,16 @@
     }
     else if(strcmp(key, "info_log_level") == 0) {
       opt_int = luaL_checkint(L, -2);
-     // options.info_log_level = opt_int;
+      options.info_log_level = [](int k) -> ROCKSDB_NAMESPACE::InfoLogLevel{
+          switch(k){
+              default:
+              case 0: return ROCKSDB_NAMESPACE::DEBUG_LEVEL ;
+              case 1: return ROCKSDB_NAMESPACE::INFO_LEVEL;
+              case 2: return ROCKSDB_NAMESPACE::WARN_LEVEL;
+              case 3: return ROCKSDB_NAMESPACE::ERROR_LEVEL;
+              case 4: return ROCKSDB_NAMESPACE::FATAL_LEVEL;
+              case 5: return ROCKSDB_NAMESPACE::HEADER_LEVEL;
+          }}(opt_int);
     }
     else if(strcmp(key, "max_open_files") == 0) {
       opt_int = luaL_checkint(L, -2);
