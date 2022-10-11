@@ -5,7 +5,10 @@ A rewrite of https://github.com/zaherm/lua-rocksdb usinig C++
 
  Lua is well known as a programming lanuage that can be embedded quite easily into any application written in C/C++.
 There are many applications that use Lua as an embedded language; Openresty, Neovim, Luatex, Redis and Wireshark to name a few. 
+It would be remiss if I did not mention Luvit which provides asynchronous IO extensions to Lua.
 However if you want extend the application using some existing library then you need to write an interface that helps Lua access that library.
+You don't want to touch the original application even if you are capable of doing so because you want to upgrade the original application without much trouble 
+when such an upgrade becomes available.
 Luajit, a more popular fork of Lua, introduced a Foreign Function Interface, that in theory helps to use any C library without having to write an interface.
 There are some caveats of course, but nevertheless it is possible. In practice though, you don't want the Lua developer to know all the nitty-gritty details of the library
 and so you provide a wrapper that simplifies the library. However this FFI is available only for Luajit and not the original version of Lua. 
@@ -17,10 +20,14 @@ of Pythonistas. But Lua is a tiny shared object, about 550 KB, and the intrinsic
 is richer than Python but not as complex as say Haskell or OCaml. However it does not match Python in its breadth of libraries.
 But as we shall see soon writing a C/C++ application to incorporate a  C/C++ library is a lot more simple compared to other languages. 
 
+##Why RocksDB
+RocksDB is an open source software from Facebook. It is an extension of LevelDB from Google. Its main use is in applications where new data grows stale pretty quickly. Stock prices, sensor values in a SCADA system or points in a distributed game. Its main use in Internet companies like Facebook or Google is to track immediate past history. It is fast at the cost of small loos in reliabilty.
+This project was developed to show that Lua extensions are pretty to write. 
+
 ## Your First Extension Module
 
 Listed below is all the code required to export a local function 'l_sin' by the name 'mysin'
-```
+````C++
 ///Code modified from Luajit source
 #include <math.h>
 #include <lua.hpp>
@@ -40,7 +47,7 @@ int luaopen_mysin(lua_State* L){
 }	
 ```
 The code above must be compiled to create a shared object by the name "mysin.so" to use the Lua code isted below.
-```
+````Lua
 ext=require("mysin")
 local n = ext.mysin(10.20)
 ```
