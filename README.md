@@ -133,12 +133,12 @@ Creates a back from *db*.
 
   * returns true on success, error on failure
 
-backup_engine:purge_old_backups(number)
+backup_engine:purge(number)
 =====
 Purge *number* of old backups.
 
 
-backup_engine:get_backup_info()
+backup_engine:get_info()
 =====
   * returns **table** of <key,value> pairs
 
@@ -150,7 +150,7 @@ _keys_
 * **number_files**
 
 
-backup_engine:restore_db_from_latest_backup(db_path, wal_dir )
+backup_engine:restore_latest(db_path, wal_dir )
 =====
 Restores DB from the latest backup.
 
