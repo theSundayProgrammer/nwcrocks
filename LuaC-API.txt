@@ -47,7 +47,7 @@ Module Design
 
 There are two main ways of writing a wrapper around a C/C++ library. The first is to simply expose all the C functions to Lua. This is the most common approach.
 However in most cases the user writes another wrapper in Lua around the exposed functions so as to simplify the interface. 
-Hence instead of exposing the whole 'C' library  it would be better if the wrapper functions written in Lua are exposed as module functions. 
+Hence instead of exposing the whole 'C' library  it would be better if the wrapper functions that would otherwise be written in Lua are exposed as module functions. 
 This implies that C++ is better for larger designs although Lua could still be used to glue the main application with the C library.
 
 

@@ -64,7 +64,6 @@ options
               1: NORMAL;
               2: SEQUENTIAL;
               3: WILLNEED ;
-    }
     * "disable_auto_compactions" = <int>
     * "report_bg_io_stats" = <int>
     * "compression" = between 0 and 9 as listed below
@@ -78,11 +77,6 @@ options
                 7 : ZSTD;
                 8 : ZSTDNotFinal Compression;
                 9 : Disable CompressionOption;
-            }
-        };
-        options.compression= int2enum(opt_int);
-    }
-    }
     * __bool options__ 
     * "create_if_missing" = <bool>
     * "create_missing_column_families" = <bool>
