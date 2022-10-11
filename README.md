@@ -115,6 +115,12 @@ Gets a value from the DB.
   * **key** - string
 
 
+db:remove(key)
+=====
+deletes  a value from the DB.
+
+  * **key** - string
+
 
 db:close()
 =====
@@ -148,6 +154,42 @@ _keys_
 * **timestamp**
 * **size**
 * **number_files**
+
+
+rocksdb.open_cf(options, db_path, column_families)
+=====
+  * **options** - table of options as listed below; may be an empty table
+  * **db_path** - string. path
+  * **column_families** - array of column names
+  * returns *rocksdb* object (referenced below as **cf**)
+
+cf:put( column_name,key, value)
+=====
+Execute a put command, key-value (both of string type).
+
+  * **column_name** - string (must be one of the values specified at open_cf
+  * **key** - string
+  * **value** - string
+
+cf:get(column_name,key)
+=====
+Gets a value from the DB.
+
+  * **column_name** - string
+  * **key** - string
+
+cf:remove(column_name,key)
+=====
+deletes  a value from the DB.
+
+  * **column_name** - string
+  * **key** - string
+
+
+
+cf:close()
+=====
+Closes the instance (it doesn't destroy the DB!)
 
 
 backup_engine:restore_latest(db_path, wal_dir )
