@@ -11,7 +11,7 @@ Example
 ===
 
 ```lua
-  local rocksdb = require("rocksdb")
+  local rocksdb = require("nwcrocks")
   local options = {
     create_if_missing = true
   }
