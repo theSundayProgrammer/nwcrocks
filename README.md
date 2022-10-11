@@ -21,7 +21,7 @@ Example
   db:close()
 ```
 
-Doc
+Documentation
 ===
 This implementation differs from [Zaherm's version (https://github.com/zaherm/lua-rocksdb) in a few ways:
 - There is no options object. The options is specified as a table on openning a database
