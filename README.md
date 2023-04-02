@@ -25,7 +25,7 @@ Documentation
 ===
 This implementation differs from [Zaherm's version (https://github.com/zaherm/lua-rocksdb) in a few ways:
 - There is no options object. The options is specified as a table on openning a database
-- Supports Column Families which are identing as string names. "Default" is a required first column name.
+- Supports Column Families which are identified using string names. "default" is a required first column name.
 
 
 rocksdb.open(options, db_path)
