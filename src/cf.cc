@@ -152,11 +152,6 @@ int open_cf(lua_State* L){
     // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
     options.IncreaseParallelism();
     options.OptimizeLevelStyleCompaction();
-    // create the DB if it's not already present
-
-    //fprintf(stderr," create = %s\n", options.create_if_missing ? "true": "false");
-    //fprintf(stderr," create = %s\n", options.create_missing_column_families? "true": "false");
-    // open DB
 
     const char *path = luaL_checkstring(L, ++argc);
 

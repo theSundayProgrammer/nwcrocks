@@ -13,20 +13,20 @@ using ROCKSDB_NAMESPACE::BackupEngineReadOnly;
 using ROCKSDB_NAMESPACE::BackupInfo;
 using ROCKSDB_NAMESPACE::Env;
 namespace {
-    int _purge_old_backups(lua_State *L);
-    int _restore_db_from_latest_backup(lua_State *L);
-    int _get_backup_info_count(lua_State *L);
-    int _get_backup_info(lua_State *L);
-    int _close(lua_State *L);
+    int l_purge_old_backups(lua_State *L);
+    int l_restore_db_from_latest_backup(lua_State *L);
+    int l_get_backup_info_count(lua_State *L);
+    int l_get_backup_info(lua_State *L);
+    int l_close(lua_State *L);
     const  char* table="backup_engine_table";
 
     static const struct luaL_Reg reg[] = {
-        { "purge", _purge_old_backups },
-        { "restore_latest", _restore_db_from_latest_backup },
-        { "get_info_count", _get_backup_info_count },
-        { "get_info", _get_backup_info },
-        { "close", _close },
-        { "__gc", _close },
+        { "purge", l_purge_old_backups },
+        { "restore_latest", l_restore_db_from_latest_backup },
+        { "get_info_count", l_get_backup_info_count },
+        { "get_info", l_get_backup_info },
+        { "close", l_close },
+        { "__gc", l_close },
         { NULL, NULL }
     };
 
@@ -34,7 +34,7 @@ namespace {
         BackupEngine* backup_engine;
     };
 
-    backup_engine_t *_get_backup_engine(lua_State *L, int index) {
+    backup_engine_t *l_get_backup_engine(lua_State *L, int index) {
         backup_engine_t *o = (backup_engine_t*)
             luaL_checkudata(L, index, table);
         luaL_argcheck(L, o != NULL && o->backup_engine!= NULL, index, "backup_engine expected");
@@ -42,8 +42,8 @@ namespace {
     }
 
 
-    int _purge_old_backups(lua_State *L) {
-        backup_engine_t *be = _get_backup_engine(L, 1);
+    int l_purge_old_backups(lua_State *L) {
+        backup_engine_t *be = l_get_backup_engine(L, 1);
         uint32_t num_backups_to_keep = luaL_checknumber(L, 2);
         Status  status = be->backup_engine->PurgeOldBackups( num_backups_to_keep);
         if(!status.ok()) {
@@ -53,8 +53,8 @@ namespace {
         return 1;
     }
 
-    int _restore_db_from_latest_backup(lua_State *L) {
-        backup_engine_t *be = _get_backup_engine(L, 1);
+    int l_restore_db_from_latest_backup(lua_State *L) {
+        backup_engine_t *be = l_get_backup_engine(L, 1);
 
         uint32_t backup_id = luaL_checknumber(L, 2);
         std::string  db_dir = lrocks::get_str(L, 3);
@@ -67,16 +67,16 @@ namespace {
         return 1;
     }
 
-    int _get_backup_info_count(lua_State *L) {
-        backup_engine_t *be = _get_backup_engine(L, 1);
+    int l_get_backup_info_count(lua_State *L) {
+        backup_engine_t *be = l_get_backup_engine(L, 1);
         std::vector<BackupInfo> backup_info;
         be->backup_engine->GetBackupInfo(&backup_info);
         int count = backup_info.size();
         lua_pushnumber(L, count);
         return 1;
     }
-    int _get_backup_info(lua_State *L) {
-        backup_engine_t *be = _get_backup_engine(L, 1);
+    int l_get_backup_info(lua_State *L) {
+        backup_engine_t *be = l_get_backup_engine(L, 1);
         std::vector<BackupInfo> backup_info;
         be->backup_engine->GetBackupInfo(&backup_info);
         lua_newtable(L);
@@ -97,8 +97,8 @@ namespace {
         return 1;
     }
 
-    int _close(lua_State *L) {
-        backup_engine_t *be = _get_backup_engine(L, 1);
+    int l_close(lua_State *L) {
+        backup_engine_t *be = l_get_backup_engine(L, 1);
         if(be->backup_engine != NULL) {
             delete be->backup_engine;
             be->backup_engine = NULL;
